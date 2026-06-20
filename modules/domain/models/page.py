@@ -19,7 +19,7 @@ class Template:
 
     @classmethod
     def from_path(cls, path: str) -> Self:
-        with open(path) as file:
+        with open(path, encoding="utf-8") as file:
             return cls.from_file(file)
 
 
