@@ -118,7 +118,7 @@ def get_markdown_files(target: str) -> list[NamedMarkdown]:
         for filename in filenames:
             if filename.endswith(".md"):
                 file = os.path.join(dirpath, filename)
-                with open(file, encoding='utf-8') as fp:
+                with open(file, encoding="utf-8") as fp:
                     files.append(NamedMarkdown.parse_named(filename, fp.read()))
     return files
 

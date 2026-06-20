@@ -1,5 +1,6 @@
 import base64
 import binascii
+import html
 import unicodedata
 from typing import Self, Sequence, TextIO
 
@@ -42,25 +43,28 @@ class PageBuilder:
         if self.template is None:
             raise RuntimeError("テンプレートファイルが指定されていません")
         content = self.template.content.replace("<!-- MD -->", self._build_pages(files))
-        content = content.replace("<!-- TITLE -->", f"「{self.title}」")
+        content = content.replace("<!-- TITLE -->", html.escape(self.title, quote=True))
+        title_css = self._to_css_string(self.title)
         # 既定のスタイルシートを追加する
         content = content.replace(
             "<!-- STYLE -->",
             f"""<style>
 @page :left {{
     @bottom-left {{
-        content: {self.title!r};
+        content: {title_css};
         font-size: var(--bulma-size-7);
         font-style: italic;
+        font-family: "Yu Mincho", "YuMincho", "Hiragino Mincho ProN", "Noto Serif JP", serif;
         color: var(--bulma-grey);
     }}
 }}
 
 @page :right {{
     @bottom-left {{
-        content: {self.title!r};
+        content: {title_css};
         font-size: var(--bulma-size-7);
         font-style: italic;
+        font-family: "Yu Mincho", "YuMincho", "Hiragino Mincho ProN", "Noto Serif JP", serif;
         color: var(--bulma-grey);
     }}
 }}
@@ -68,6 +72,22 @@ class PageBuilder:
 """,
         )
         return content
+
+    def _to_css_string(self, text: str) -> str:
+        escaped: list[str] = []
+        for ch in text:
+            if ch == "\\":
+                escaped.append("\\\\")
+                continue
+            if ch == "'":
+                escaped.append("\\'")
+                continue
+            code = ord(ch)
+            if 0x20 <= code <= 0x7E:
+                escaped.append(ch)
+            else:
+                escaped.append(f"\\{code:X} ")
+        return "'" + "".join(escaped) + "'"
 
     def _build_pages(self, files: Sequence[NamedMarkdown]) -> str:
         # ファイル番号でソートして埋め込む
